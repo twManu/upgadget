@@ -203,11 +203,19 @@ static const struct UVC_FRAME_UNCOMPRESSED(3) uvc_frame_yuv_360p = {
 	.bDescriptorSubType	= UVC_VS_FRAME_UNCOMPRESSED,
 	.bFrameIndex		= 1,
 	.bmCapabilities		= 0,
+#if    IF_YUV_ONLY
+	.wWidth			= cpu_to_le16(1920),
+	.wHeight		= cpu_to_le16(1080),
+	.dwMinBitRate		= cpu_to_le32(18432000),
+	.dwMaxBitRate		= cpu_to_le32(55296000),
+	.dwMaxVideoFrameBufferSize	= cpu_to_le32(4147200),
+#else	//IF_YUV_ONLY
 	.wWidth			= cpu_to_le16(640),
 	.wHeight		= cpu_to_le16(360),
 	.dwMinBitRate		= cpu_to_le32(18432000),
 	.dwMaxBitRate		= cpu_to_le32(55296000),
 	.dwMaxVideoFrameBufferSize	= cpu_to_le32(460800),
+#endif	//IF_YUV_ONLY
 	.dwDefaultFrameInterval	= cpu_to_le32(666666),
 	.bFrameIntervalType	= 3,
 	.dwFrameInterval[0]	= cpu_to_le32(666666),
