@@ -1,5 +1,9 @@
- *.o
- *.ko
- *.mod.c
- *.builtin
- *.order
+.*
+*.o
+*.o.*
+*.ko
+*.ko.*
+*.mod.c
+*.builtin
+*.order
+
