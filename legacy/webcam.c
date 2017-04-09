@@ -16,6 +16,7 @@
 #include <linux/usb/video.h>
 
 #include "u_uvc.h"
+#define IF_YUV_ONLY            1
 
 USB_GADGET_COMPOSITE_OPTIONS();
 
@@ -145,12 +146,22 @@ static const struct uvc_output_terminal_descriptor uvc_output_terminal = {
 	.iTerminal		= 0,
 };
 
+#if    IF_YUV_ONLY
+DECLARE_UVC_INPUT_HEADER_DESCRIPTOR(1, 1);
+
+static const struct UVC_INPUT_HEADER_DESCRIPTOR(1, 1) uvc_input_header = {
+	.bLength                = UVC_DT_INPUT_HEADER_SIZE(1, 1),
+	.bDescriptorType        = USB_DT_CS_INTERFACE,
+	.bDescriptorSubType     = UVC_VS_INPUT_HEADER,
+	.bNumFormats            = 1,
+#else  //IF_YUV_ONLY
 DECLARE_UVC_INPUT_HEADER_DESCRIPTOR(1, 2);
 
 static const struct UVC_INPUT_HEADER_DESCRIPTOR(1, 2) uvc_input_header = {
 	.bLength		= UVC_DT_INPUT_HEADER_SIZE(1, 2),
 	.bDescriptorType	= USB_DT_CS_INTERFACE,
 	.bDescriptorSubType	= UVC_VS_INPUT_HEADER,
+#endif	//IF_YUV_ONLY
 	.bNumFormats		= 2,
 	.wTotalLength		= 0, /* dynamic */
 	.bEndpointAddress	= 0, /* dynamic */
@@ -161,7 +172,9 @@ static const struct UVC_INPUT_HEADER_DESCRIPTOR(1, 2) uvc_input_header = {
 	.bTriggerUsage		= 0,
 	.bControlSize		= 1,
 	.bmaControls[0][0]	= 0,
+#if    !IF_YUV_ONLY
 	.bmaControls[1][0]	= 4,
+#endif	//!IF_YUV_ONLY
 };
 
 static const struct uvc_format_uncompressed uvc_format_yuv = {
@@ -299,9 +312,11 @@ static const struct uvc_descriptor_header * const uvc_fs_streaming_cls[] = {
 	(const struct uvc_descriptor_header *) &uvc_format_yuv,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_360p,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_720p,
+#if    !IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_format_mjpg,
 	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_360p,
 	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_720p,
+#endif	//!IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_color_matching,
 	NULL,
 };
@@ -311,9 +326,11 @@ static const struct uvc_descriptor_header * const uvc_hs_streaming_cls[] = {
 	(const struct uvc_descriptor_header *) &uvc_format_yuv,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_360p,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_720p,
+#if    !IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_format_mjpg,
 	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_360p,
 	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_720p,
+#endif	//!IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_color_matching,
 	NULL,
 };
@@ -323,9 +340,11 @@ static const struct uvc_descriptor_header * const uvc_ss_streaming_cls[] = {
 	(const struct uvc_descriptor_header *) &uvc_format_yuv,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_360p,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_720p,
+#if    !IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_format_mjpg,
 	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_360p,
 	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_720p,
+#endif	//!IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_color_matching,
 	NULL,
 };
