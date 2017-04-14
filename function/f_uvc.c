@@ -169,6 +169,11 @@ static struct usb_endpoint_descriptor uvc_hs_streaming_ep = {
 	/* The wMaxPacketSize and bInterval values will be initialized from
 	 * module parameters.
 	 */
+#if	IF_MJPEG_ONLY
+	//still use ep if xxxONLY
+	.wMaxPacketSize         = cpu_to_le16(700),       //single transaction
+	.bInterval              = 1,
+#endif	//IF_MJPEG_ONLY
 };
 
 
@@ -181,7 +186,7 @@ static struct usb_endpoint_descriptor uvc_hs_streaming_ep2 = {
 	/* The wMaxPacketSize and bInterval values will be initialized from
 	 * module parameters.
 	 */
-	.wMaxPacketSize         = 700,                     //single transaction
+	.wMaxPacketSize         = cpu_to_le16(700),       //single transaction
 	.bInterval              = 1,
 };
 
@@ -212,11 +217,14 @@ static const struct usb_descriptor_header * const uvc_fs_streaming[] = {
 	NULL,
 };
 
+//when YUV present, alt2 might not work well
 static struct usb_descriptor_header *uvc_hs_streaming[] = {
 	(struct usb_descriptor_header *) &uvc_streaming_intf_alt1,
 	(struct usb_descriptor_header *) &uvc_hs_streaming_ep,
+#if	!IF_MJPEG_ONLY
 	(struct usb_descriptor_header *) &uvc_streaming_intf_alt2,
 	(struct usb_descriptor_header *) &uvc_hs_streaming_ep2,
+#endif	//!IF_MJPEG_ONLY
 	NULL,
 };
 
