@@ -19,6 +19,13 @@
 #include <linux/usb/composite.h>
 #include <linux/usb/video.h>
 
+/*
+ * 1. only one of YUV_ONLY takes effect if both on
+ * 2. if none activated, YUV will be 1st format
+ */
+#define IF_YUV_ONLY            0
+#define IF_MJPEG_ONLY          0
+
 #define fi_to_f_uvc_opts(f)	container_of(f, struct f_uvc_opts, func_inst)
 
 struct f_uvc_opts {

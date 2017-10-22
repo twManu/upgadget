@@ -94,7 +94,7 @@ extern unsigned int uvc_gadget_trace_param;
  * Driver specific constants
  */
 
-#define UVC_NUM_REQUESTS			4
+#define UVC_NUM_REQUESTS			32
 #define UVC_MAX_REQUEST_SIZE			64
 #define UVC_MAX_EVENTS				4
 
@@ -137,6 +137,20 @@ enum uvc_state {
 	UVC_STATE_STREAMING,
 };
 
+#define MAX_FRAME            30
+#define MAX_ALT              32
+
+struct info_frame {
+	__u16             width;
+	__u16             height;
+	__u32             interval[MAX_FRAME];//0 is invalid
+};
+
+struct info_format {
+	__u32                 pix_fmt;            //v4l2 pix format
+	struct info_frame     frame[MAX_FRAME];   //dimentions, 0 wxh invalid
+};
+
 struct uvc_device {
 	struct video_device vdev;
 	struct v4l2_device v4l2_dev;
@@ -163,6 +177,11 @@ struct uvc_device {
 	/* Events */
 	unsigned int event_length;
 	unsigned int event_setup_out : 1;
+
+	unsigned int hs_fmtCount;
+	struct info_format hs_fmtfrm[MAX_FRAME];  //0 pix fmt invalid
+	unsigned short hs_maxpkt[MAX_ALT];
+	unsigned int curStreamAlt;
 };
 
 static inline struct uvc_device *to_uvc(struct usb_function *f)

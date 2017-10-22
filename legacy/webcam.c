@@ -145,6 +145,24 @@ static const struct uvc_output_terminal_descriptor uvc_output_terminal = {
 	.iTerminal		= 0,
 };
 
+#if    IF_YUV_ONLY
+DECLARE_UVC_INPUT_HEADER_DESCRIPTOR(1, 1);
+
+static const struct UVC_INPUT_HEADER_DESCRIPTOR(1, 1) uvc_input_header = {
+	.bLength                = UVC_DT_INPUT_HEADER_SIZE(1, 1),
+	.bDescriptorType        = USB_DT_CS_INTERFACE,
+	.bDescriptorSubType     = UVC_VS_INPUT_HEADER,
+	.bNumFormats            = 1,
+#else  //IF_YUV_ONLY
+	#if	IF_MJPEG_ONLY
+DECLARE_UVC_INPUT_HEADER_DESCRIPTOR(1, 1);
+
+static const struct UVC_INPUT_HEADER_DESCRIPTOR(1, 1) uvc_input_header = {
+	.bLength                = UVC_DT_INPUT_HEADER_SIZE(1, 1),
+	.bDescriptorType        = USB_DT_CS_INTERFACE,
+	.bDescriptorSubType     = UVC_VS_INPUT_HEADER,
+	.bNumFormats            = 1,
+	#else	//IF_MJPEG_ONLY
 DECLARE_UVC_INPUT_HEADER_DESCRIPTOR(1, 2);
 
 static const struct UVC_INPUT_HEADER_DESCRIPTOR(1, 2) uvc_input_header = {
@@ -152,6 +170,8 @@ static const struct UVC_INPUT_HEADER_DESCRIPTOR(1, 2) uvc_input_header = {
 	.bDescriptorType	= USB_DT_CS_INTERFACE,
 	.bDescriptorSubType	= UVC_VS_INPUT_HEADER,
 	.bNumFormats		= 2,
+	#endif	//IF_MJPEG_ONLY
+#endif	//IF_YUV_ONLY
 	.wTotalLength		= 0, /* dynamic */
 	.bEndpointAddress	= 0, /* dynamic */
 	.bmInfo			= 0,
@@ -160,8 +180,16 @@ static const struct UVC_INPUT_HEADER_DESCRIPTOR(1, 2) uvc_input_header = {
 	.bTriggerSupport	= 0,
 	.bTriggerUsage		= 0,
 	.bControlSize		= 1,
+#if    IF_YUV_ONLY
+	.bmaControls[0][0]	= 0,
+#else	//IF_YUV_ONLY
+	#if    IF_MJPEG_ONLY
+	.bmaControls[0][0]	= 4,
+	#else	//IF_MJPEG_ONLY
 	.bmaControls[0][0]	= 0,
 	.bmaControls[1][0]	= 4,
+	#endif	//IF_MJPEG_ONLY
+#endif	//!IF_YUV_ONLY
 };
 
 static const struct uvc_format_uncompressed uvc_format_yuv = {
@@ -169,7 +197,7 @@ static const struct uvc_format_uncompressed uvc_format_yuv = {
 	.bDescriptorType	= USB_DT_CS_INTERFACE,
 	.bDescriptorSubType	= UVC_VS_FORMAT_UNCOMPRESSED,
 	.bFormatIndex		= 1,
-	.bNumFrameDescriptors	= 2,
+	.bNumFrameDescriptors	= 3,
 	.guidFormat		=
 		{ 'Y',  'U',  'Y',  '2', 0x00, 0x00, 0x10, 0x00,
 		 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71},
@@ -190,11 +218,11 @@ static const struct UVC_FRAME_UNCOMPRESSED(3) uvc_frame_yuv_360p = {
 	.bDescriptorSubType	= UVC_VS_FRAME_UNCOMPRESSED,
 	.bFrameIndex		= 1,
 	.bmCapabilities		= 0,
-	.wWidth			= cpu_to_le16(640),
-	.wHeight		= cpu_to_le16(360),
+	.wWidth			= cpu_to_le16(1920),
+	.wHeight		= cpu_to_le16(1080),
 	.dwMinBitRate		= cpu_to_le32(18432000),
 	.dwMaxBitRate		= cpu_to_le32(55296000),
-	.dwMaxVideoFrameBufferSize	= cpu_to_le32(460800),
+	.dwMaxVideoFrameBufferSize	= cpu_to_le32(4147200),
 	.dwDefaultFrameInterval	= cpu_to_le32(666666),
 	.bFrameIntervalType	= 3,
 	.dwFrameInterval[0]	= cpu_to_le32(666666),
@@ -213,16 +241,38 @@ static const struct UVC_FRAME_UNCOMPRESSED(1) uvc_frame_yuv_720p = {
 	.dwMinBitRate		= cpu_to_le32(29491200),
 	.dwMaxBitRate		= cpu_to_le32(29491200),
 	.dwMaxVideoFrameBufferSize	= cpu_to_le32(1843200),
-	.dwDefaultFrameInterval	= cpu_to_le32(5000000),
+	.dwDefaultFrameInterval	= cpu_to_le32(666666),
 	.bFrameIntervalType	= 1,
-	.dwFrameInterval[0]	= cpu_to_le32(5000000),
+	.dwFrameInterval[0]	= cpu_to_le32(666666),
 };
+
+
+static const struct UVC_FRAME_UNCOMPRESSED(1) uvc_frame_yuv_480p = {
+	.bLength		= UVC_DT_FRAME_UNCOMPRESSED_SIZE(1),
+	.bDescriptorType	= USB_DT_CS_INTERFACE,
+	.bDescriptorSubType	= UVC_VS_FRAME_UNCOMPRESSED,
+	.bFrameIndex		= 3,
+	.bmCapabilities		= 0,
+	.wWidth			= cpu_to_le16(640),
+	.wHeight		= cpu_to_le16(480),
+	.dwMinBitRate		= cpu_to_le32(29491200),
+	.dwMaxBitRate		= cpu_to_le32(29491200),
+	.dwMaxVideoFrameBufferSize	= cpu_to_le32(640*480*2),
+	.dwDefaultFrameInterval	= cpu_to_le32(666666),
+	.bFrameIntervalType	= 1,
+	.dwFrameInterval[0]	= cpu_to_le32(666666),
+};
+
 
 static const struct uvc_format_mjpeg uvc_format_mjpg = {
 	.bLength		= UVC_DT_FORMAT_MJPEG_SIZE,
 	.bDescriptorType	= USB_DT_CS_INTERFACE,
 	.bDescriptorSubType	= UVC_VS_FORMAT_MJPEG,
+#if	IF_MJPEG_ONLY
+	.bFormatIndex		= 1,
+#else	//IF_MJPEG_ONLY
 	.bFormatIndex		= 2,
+#endif	//IF_MJPEG_ONLY
 	.bNumFrameDescriptors	= 2,
 	.bmFlags		= 0,
 	.bDefaultFrameIndex	= 1,
@@ -235,19 +285,19 @@ static const struct uvc_format_mjpeg uvc_format_mjpg = {
 DECLARE_UVC_FRAME_MJPEG(1);
 DECLARE_UVC_FRAME_MJPEG(3);
 
-static const struct UVC_FRAME_MJPEG(3) uvc_frame_mjpg_360p = {
-	.bLength		= UVC_DT_FRAME_MJPEG_SIZE(3),
+static const struct UVC_FRAME_MJPEG(1) uvc_frame_mjpg_360p = {
+	.bLength		= UVC_DT_FRAME_MJPEG_SIZE(1),
 	.bDescriptorType	= USB_DT_CS_INTERFACE,
 	.bDescriptorSubType	= UVC_VS_FRAME_MJPEG,
 	.bFrameIndex		= 1,
 	.bmCapabilities		= 0,
-	.wWidth			= cpu_to_le16(640),
-	.wHeight		= cpu_to_le16(360),
+	.wWidth			= cpu_to_le16(1920),
+	.wHeight		= cpu_to_le16(1080),
 	.dwMinBitRate		= cpu_to_le32(18432000),
 	.dwMaxBitRate		= cpu_to_le32(55296000),
 	.dwMaxVideoFrameBufferSize	= cpu_to_le32(460800),
 	.dwDefaultFrameInterval	= cpu_to_le32(666666),
-	.bFrameIntervalType	= 3,
+	.bFrameIntervalType	= 1,
 	.dwFrameInterval[0]	= cpu_to_le32(666666),
 	.dwFrameInterval[1]	= cpu_to_le32(1000000),
 	.dwFrameInterval[2]	= cpu_to_le32(5000000),
@@ -296,36 +346,72 @@ static const struct uvc_descriptor_header * const uvc_ss_control_cls[] = {
 
 static const struct uvc_descriptor_header * const uvc_fs_streaming_cls[] = {
 	(const struct uvc_descriptor_header *) &uvc_input_header,
+#if    IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_format_yuv,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_360p,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_720p,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_480p,
+#else	//IF_YUV_ONLY
+	#if    IF_MJPEG_ONLY
 	(const struct uvc_descriptor_header *) &uvc_format_mjpg,
 	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_360p,
-	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_720p,
+	#else	//IF_MJPEG_ONLY
+	(const struct uvc_descriptor_header *) &uvc_format_yuv,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_360p,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_720p,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_480p,
+	(const struct uvc_descriptor_header *) &uvc_format_mjpg,
+	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_360p,
+	#endif	//IF_MJPEG_ONLY
+#endif	//IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_color_matching,
 	NULL,
 };
 
 static const struct uvc_descriptor_header * const uvc_hs_streaming_cls[] = {
 	(const struct uvc_descriptor_header *) &uvc_input_header,
+#if    IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_format_yuv,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_360p,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_720p,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_480p,
+#else	//IF_YUV_ONLY
+	#if    IF_MJPEG_ONLY
 	(const struct uvc_descriptor_header *) &uvc_format_mjpg,
 	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_360p,
-	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_720p,
+	#else	//IF_MJPEG_ONLY
+	(const struct uvc_descriptor_header *) &uvc_format_yuv,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_360p,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_720p,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_480p,
+	(const struct uvc_descriptor_header *) &uvc_format_mjpg,
+	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_360p,
+	#endif	//IF_MJPEG_ONLY
+#endif	//IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_color_matching,
 	NULL,
 };
 
 static const struct uvc_descriptor_header * const uvc_ss_streaming_cls[] = {
 	(const struct uvc_descriptor_header *) &uvc_input_header,
+#if    IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_format_yuv,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_360p,
 	(const struct uvc_descriptor_header *) &uvc_frame_yuv_720p,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_480p,
+#else	//IF_YUV_ONLY
+	#if    IF_MJPEG_ONLY
 	(const struct uvc_descriptor_header *) &uvc_format_mjpg,
 	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_360p,
-	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_720p,
+	#else	//IF_MJPEG_ONLY
+	(const struct uvc_descriptor_header *) &uvc_format_yuv,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_360p,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_720p,
+	(const struct uvc_descriptor_header *) &uvc_frame_yuv_480p,
+	(const struct uvc_descriptor_header *) &uvc_format_mjpg,
+	(const struct uvc_descriptor_header *) &uvc_frame_mjpg_360p,
+	#endif	//IF_MJPEG_ONLY
+#endif	//IF_YUV_ONLY
 	(const struct uvc_descriptor_header *) &uvc_color_matching,
 	NULL,
 };
