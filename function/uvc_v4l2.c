@@ -82,58 +82,6 @@ uvc_v4l2_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
 }
 
 static int
-uvc_v4l2_get_parm(struct file *file, void *fh, struct v4l2_streamparm *parm)
-{
-	unsigned short *ptr = (unsigned short *)parm->parm.raw_data;
-	struct video_device *vdev = video_devdata(file);
-	struct uvc_device *uvc = video_get_drvdata(vdev);
-	int i;
-
-	//fill fromt alt1, alt2, ..., 0
-	for( i=0; i<MAX_ALT; ++i, ++ptr ) {
-		*ptr = uvc->hs_maxpkt[i];
-		if( !(*ptr) ) break;       //0 filled
-	}
-	
-	return 0;
-}
-
-static int
-uvc_v4l2_try_format(struct file *file, void *fh, struct v4l2_format *fmt)
-{
-	struct video_device *vdev = video_devdata(file);
-	struct uvc_device *uvc = video_get_drvdata(vdev);
-	struct info_format *theFmt;
-	unsigned int *interval;
-	unsigned int frmIndex, fmtIndex = (unsigned int)fmt->fmt.pix.pixelformat;
-	int i;
-
-	frmIndex = fmtIndex & 0xffff;
-	fmtIndex = (fmtIndex>>16) & 0xffff;
-	//pixelformat indicate the nth (format<<16) | (frame) to query
-	if( fmtIndex >= uvc->hs_fmtCount ) return -EINVAL;
-	if( frmIndex >= MAX_FRAME ) return -EINVAL;
-	theFmt = uvc->hs_fmtfrm+fmtIndex;
-	if( !theFmt->pix_fmt ) return -EINVAL;
-	//fill format
-	fmt->fmt.pix.pixelformat = theFmt->pix_fmt;
-	if( !theFmt->frame[frmIndex].width ||
-	    !theFmt->frame[frmIndex].height ) return -EINVAL;
-	//fill wxh
-	fmt->fmt.pix.width = theFmt->frame[frmIndex].width;
-	fmt->fmt.pix.height = theFmt->frame[frmIndex].height;
-	/*
-	 * fill all intervals
-	 * risk is interval has as many as MAX_FRAME
-	 */
-	for( i=0, interval=(unsigned int *)&fmt->fmt.raw_data[100]; 1; ++i, ++interval )
-		if( 0==(*interval = theFmt->frame[frmIndex].interval[i]) )
-			break;
-
-	return 0;
-}
-
-static int
 uvc_v4l2_get_format(struct file *file, void *fh, struct v4l2_format *fmt)
 {
 	struct video_device *vdev = video_devdata(file);
@@ -317,8 +265,6 @@ const struct v4l2_ioctl_ops uvc_v4l2_ioctl_ops = {
 	.vidioc_querycap = uvc_v4l2_querycap,
 	.vidioc_g_fmt_vid_out = uvc_v4l2_get_format,
 	.vidioc_s_fmt_vid_out = uvc_v4l2_set_format,
-	.vidioc_try_fmt_vid_out = uvc_v4l2_try_format,
-	.vidioc_g_parm = uvc_v4l2_get_parm,
 	.vidioc_reqbufs = uvc_v4l2_reqbufs,
 	.vidioc_querybuf = uvc_v4l2_querybuf,
 	.vidioc_qbuf = uvc_v4l2_qbuf,
