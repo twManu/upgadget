@@ -285,7 +285,7 @@ static const struct uvc_format_mjpeg uvc_format_mjpg = {
 DECLARE_UVC_FRAME_MJPEG(1);
 DECLARE_UVC_FRAME_MJPEG(3);
 
-static const struct UVC_FRAME_MJPEG(1) uvc_frame_mjpg_360p = {
+static const struct UVC_FRAME_MJPEG(3) uvc_frame_mjpg_360p = {
 	.bLength		= UVC_DT_FRAME_MJPEG_SIZE(1),
 	.bDescriptorType	= USB_DT_CS_INTERFACE,
 	.bDescriptorSubType	= UVC_VS_FRAME_MJPEG,
